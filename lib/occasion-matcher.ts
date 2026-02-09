@@ -42,14 +42,9 @@ function getTodayPH(): { day: number; month: number } {
     now.toLocaleString('en-US', { timeZone: 'Asia/Manila' })
   );
 
-  // return {
-  //   day: phTime.getDate(),
-  //   month: phTime.getMonth() + 1,
-  // };
-
   return {
-    day: 27,
-    month: 5,
+    day: phTime.getDate(),
+    month: phTime.getMonth() + 1,
   };
 }
 

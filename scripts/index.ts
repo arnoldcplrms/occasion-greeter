@@ -11,7 +11,7 @@ import { sendOccasionEmail } from '../lib/email-service';
  * 3. Generate greetings for each occasion
  * 4. Send emails with greetings and profile pictures
  */
-async function main(): Promise<void> {
+(async () => {
   try {
     console.log('🎉 Starting Birthday & Anniversary Greeter...');
 
@@ -33,13 +33,12 @@ async function main(): Promise<void> {
 
     // Process each occasion
     for (const occasion of occasionsToday) {
-      let logMessage = '';
-
-      if (occasion.type === 'birthday' && occasion.person) {
-        logMessage = `🎂 Processing birthday for ${occasion.person.name}`;
-      } else if (occasion.type === 'anniversary' && occasion.couple) {
-        logMessage = `💍 Processing anniversary for Team ${occasion.couple.lastName}`;
-      }
+      const logMessage =
+        occasion.type === 'birthday' && occasion.person
+          ? `🎂 Processing birthday for ${occasion.person.name}`
+          : occasion.type === 'anniversary' && occasion.couple
+          ? `💍 Processing anniversary for Team ${occasion.couple.lastName}`
+          : '';
 
       console.log(`\n📧 ${logMessage}`);
 
@@ -50,11 +49,11 @@ async function main(): Promise<void> {
       // Send email
       const result = await sendOccasionEmail(occasion, greeting);
 
-      if (result.success) {
-        console.log(`✓ Email sent successfully (ID: ${result.messageId})`);
-      } else {
-        console.error(`✗ Failed to send email: ${result.error}`);
+      if (!result.success) {
+        return console.error(`✗ Failed to send email: ${result.error}`);
       }
+
+      console.log(`✓ Email sent successfully (ID: ${result.messageId})`);
     }
 
     console.log('\n✓ Birthday & Anniversary Greeter completed');
@@ -63,6 +62,4 @@ async function main(): Promise<void> {
     console.error(`✗ Error: ${errorMessage}`);
     process.exit(1);
   }
-}
-
-main();
+})();

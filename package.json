@@ -1,0 +1,22 @@
+{
+  "name": "occassion-greeter",
+  "version": "1.0.0",
+  "description": "Birthday greeter cron job using GitHub Actions and Bun",
+  "type": "module",
+  "scripts": {
+    "dev": "bun scripts/send-birthday-greetings.ts",
+    "build": "bun build scripts/send-birthday-greetings.ts --outdir dist",
+    "test": "echo 'No tests configured'"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.7"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/nodemailer": "^6.4.14",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

@@ -21,10 +21,10 @@ jobs:
 
       - name: Run birthday & anniversary greeter
         env:
-          COUPLES_DATA: ${{ secrets.COUPLES_DATA }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          CSV_URL: ${{ secrets.CSV_URL }}
         run: bun run scripts/index.ts

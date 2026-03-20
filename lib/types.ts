@@ -25,10 +25,12 @@ export interface Occasion {
   person?: {
     name: string;
     nickname: string;
+    email: string;
     profilePicture: string;
   };
   couple?: {
     lastName: string;
+    maleLastName: string;
     profilePicture: string;
   };
 }

@@ -2,15 +2,8 @@ import { loadOccasionsData } from '../lib/data-loader';
 import { findOccasionsToday } from '../lib/occasion-matcher';
 import { generateGreeting } from '../lib/greeting-generator';
 import { sendOccasionEmail } from '../lib/email-service';
+import { getManifest } from '../lib/extract-manifest';
 
-/**
- * Main script to send birthday and anniversary greetings
- * Orchestrates the entire workflow:
- * 1. Load occasions data from environment
- * 2. Find birthdays and anniversaries matching today
- * 3. Generate greetings for each occasion
- * 4. Send emails with greetings and profile pictures
- */
 (async () => {
   try {
     console.log('🎉 Starting Birthday & Anniversary Greeter...');
@@ -18,7 +11,6 @@ import { sendOccasionEmail } from '../lib/email-service';
     // Load occasions data
     console.log('📂 Loading occasions data...');
     const occasionsData = await loadOccasionsData();
-    console.log('occasionsData', occasionsData);
     console.log(`✓ Loaded ${occasionsData.length} occasions`);
 
     // Find occasions today
@@ -29,6 +21,8 @@ import { sendOccasionEmail } from '../lib/email-service';
       console.log('✓ No occasions today');
       return;
     }
+
+    const manifest = await getManifest();
 
     console.log(`✓ Found ${occasionsToday.length} occasion(s) today`);
 
@@ -48,7 +42,7 @@ import { sendOccasionEmail } from '../lib/email-service';
       console.log(`📝 Generated greeting: ${greeting}`);
 
       // Send email
-      const result = await sendOccasionEmail(occasion, greeting);
+      const result = await sendOccasionEmail(occasion, greeting, manifest);
 
       if (!result.success) {
         return console.error(`✗ Failed to send email: ${result.error}`);

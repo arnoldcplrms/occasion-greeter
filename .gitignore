@@ -34,3 +34,4 @@ tmp/
 temp/
 *.pid
 couples.json
+occasion-photo-manifest.json

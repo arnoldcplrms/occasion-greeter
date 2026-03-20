@@ -64,10 +64,15 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
+
+# Public manifest URL containing birthday and anniversary photo links
+OCCASION_MANIFEST_URL=https://drive.google.com/uc?export=download&id=<MANIFEST_FILE_ID>
 ```
 
 If `COUPLES_CSV_URL` is set, the app will fetch and parse CSV from that source and ignore `COUPLES_DATA`.
 Make sure the Drive file sharing is set to **Anyone with the link can view**.
+
+For celebrant photos via manifest, publish the manifest file and linked image files as **Anyone with the link can view**.
 
 ### 3. Email Server Setup
 
@@ -236,6 +241,34 @@ Notes:
 - `maleName`, `femaleName`, and `coupleLastName` are required.
 - Dates should remain in `DD/MM/YYYY` format.
 - Empty birthday/anniversary fields are allowed.
+
+### Celebrant Photo Filename Rules
+
+- Birthday key: full email in lowercase, e.g. `john.doe@gmail.com`.
+- Anniversary key: male surname in lowercase snake_case, e.g. `san_pedro`.
+- If a celebrant photo is not found, the email is still sent and includes a short note that no photo is available.
+
+### Occasion Manifest Format
+
+Create a JSON file using this structure (see `occasion-photo-manifest.json` in the repo):
+
+```json
+{
+  "birthday": {
+    "email@hello.com": "https://drive.google.com/open?id=<FILE_ID>"
+  },
+  "wedding_anniversary": {
+    "male_surname": "https://drive.google.com/open?id=<FILE_ID>"
+  }
+}
+```
+
+Accepted image URL formats in manifest values (all normalized automatically):
+
+- `https://drive.google.com/open?id=<FILE_ID>`
+- `https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing`
+- `https://drive.google.com/uc?export=view&id=<FILE_ID>`
+- Any non-Drive direct image URL (kept as-is)
 
 ## Cron Schedule
 

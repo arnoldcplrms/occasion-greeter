@@ -1,4 +1,10 @@
 import nodemailer from 'nodemailer';
+import {
+  type PhotoLookupResult,
+  normalizeManifestPhotoUrl,
+  type OccasionManifest,
+  resolveOccasionPhoto,
+} from './drive-photo-service';
 import type { Occasion } from './types';
 
 /**
@@ -50,12 +56,7 @@ function createTransporter() {
 }
 
 function toDriveViewUrl(url: string): string {
-  if (!url) return url;
-  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch) {
-    return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
-  }
-  return url;
+  return normalizeManifestPhotoUrl(url);
 }
 
 function escapeHtml(text: string): string {
@@ -75,16 +76,101 @@ function inferImageExtension(url: string): string {
   return 'jpg';
 }
 
+interface OccasionEmailMeta {
+  subject: string;
+  fallbackProfilePicture: string;
+}
+
+interface ResolvedPhotoState {
+  profilePictureUrl: string;
+  missingPhotoHint: string;
+}
+
+function getOccasionEmailMeta(occasion: Occasion): OccasionEmailMeta {
+  if (occasion.type === 'birthday' && occasion.person) {
+    return {
+      subject: `Birthday Greeting: ${occasion.person.name}`,
+      fallbackProfilePicture: occasion.person.profilePicture,
+    };
+  }
+
+  if (occasion.type === 'anniversary' && occasion.couple) {
+    return {
+      subject: `Anniversary Greeting: Team ${occasion.couple.lastName}`,
+      fallbackProfilePicture: occasion.couple.profilePicture,
+    };
+  }
+
+  throw new Error('Invalid occasion type');
+}
+
+function buildMediaSectionHtml(
+  hasImageAttachment: boolean,
+  viewUrl: string,
+  safeMissingPhotoHint: string
+): string {
+  if (hasImageAttachment) {
+    return `<div class="section"><img class="profile-img" src="${viewUrl}" alt="Profile Picture" /><p class="hint">The profile image is attached to this email for download.</p></div>`;
+  }
+
+  if (safeMissingPhotoHint) {
+    return `<div class="section"><p class="hint">${safeMissingPhotoHint}</p></div>`;
+  }
+
+  return '';
+}
+
+function resolvePhotoState(
+  occasion: Occasion,
+  lookupResult: PhotoLookupResult,
+  fallbackProfilePicture: string
+): ResolvedPhotoState {
+  if (lookupResult.status === 'found') {
+    return {
+      profilePictureUrl: lookupResult.url,
+      missingPhotoHint: '',
+    };
+  }
+
+  if (lookupResult.status === 'not-configured' && fallbackProfilePicture) {
+    return {
+      profilePictureUrl: toDriveViewUrl(fallbackProfilePicture),
+      missingPhotoHint: '',
+    };
+  }
+
+  if (lookupResult.attemptedFileName) {
+    console.warn(
+      `Photo not found for ${occasion.type}: ${lookupResult.attemptedFileName}`
+    );
+  }
+
+  return {
+    profilePictureUrl: '',
+    missingPhotoHint:
+      lookupResult.message || 'No celebrant photo available for this occasion.',
+  };
+}
+
 /**
  * Generate HTML email content with greeting and inline profile picture
  */
 function generateEmailHTML(
   greeting: string,
   profilePictureUrl: string,
-  hasImageAttachment: boolean
+  hasImageAttachment: boolean,
+  missingPhotoHint?: string
 ): string {
   const viewUrl = escapeHtml(profilePictureUrl);
   const safeGreeting = escapeHtml(greeting);
+  const safeMissingPhotoHint = missingPhotoHint
+    ? escapeHtml(missingPhotoHint)
+    : '';
+  const mediaSectionHtml = buildMediaSectionHtml(
+    hasImageAttachment,
+    viewUrl,
+    safeMissingPhotoHint
+  );
 
   return `<!DOCTYPE html>
 <html>
@@ -106,11 +192,7 @@ function generateEmailHTML(
         <div class="greeting" id="greetingText">${safeGreeting}</div>
       </div>
 
-      ${
-        hasImageAttachment
-          ? `<div class="section"><img class="profile-img" src="${viewUrl}" alt="Profile Picture" /><p class="hint">The profile image is attached to this email for download.</p></div>`
-          : ''
-      }
+      ${mediaSectionHtml}
 
       <div class="footer">
         <p>Sent by Birthday &amp; Anniversary Greeter 🎉</p>
@@ -128,32 +210,27 @@ function generateEmailHTML(
  */
 export async function sendOccasionEmail(
   occasion: Occasion,
-  greeting: string
+  greeting: string,
+  manifest: OccasionManifest
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     validateEmailConfig();
 
-    const transporter = createTransporter();
+    const { subject, fallbackProfilePicture } = getOccasionEmailMeta(occasion);
 
-    let subject: string;
-    let profilePicture: string;
+    const lookupResult = await resolveOccasionPhoto(occasion, manifest);
+    const { profilePictureUrl, missingPhotoHint } = resolvePhotoState(
+      occasion,
+      lookupResult,
+      fallbackProfilePicture
+    );
 
-    if (occasion.type === 'birthday' && occasion.person) {
-      subject = `Birthday Greeting: ${occasion.person.name}`;
-      profilePicture = occasion.person.profilePicture;
-    } else if (occasion.type === 'anniversary' && occasion.couple) {
-      subject = `Anniversary Greeting: Team ${occasion.couple.lastName}`;
-      profilePicture = occasion.couple.profilePicture;
-    } else {
-      throw new Error('Invalid occasion type');
-    }
-
-    const profilePictureUrl = toDriveViewUrl(profilePicture);
     const hasImageAttachment = Boolean(profilePictureUrl);
     const htmlContent = generateEmailHTML(
       greeting,
       profilePictureUrl,
-      hasImageAttachment
+      hasImageAttachment,
+      missingPhotoHint
     );
 
     const attachments = hasImageAttachment
@@ -176,6 +253,7 @@ export async function sendOccasionEmail(
       attachments,
     };
 
+    const transporter = createTransporter();
     const info = await transporter.sendMail(mailOptions);
 
     return {

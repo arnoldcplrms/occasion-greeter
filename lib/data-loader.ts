@@ -152,52 +152,6 @@ function parseOccasionsCsv(csvText: string): OccasionData[] {
   });
 }
 
-// Google Sheets document IDs are 44 chars; regular Drive file IDs are ~28.
-function looksLikeSheetsId(id: string): boolean {
-  return id.length >= 40;
-}
-
-function sheetsExportUrl(fileId: string): string {
-  return `https://docs.google.com/spreadsheets/d/${fileId}/export?format=csv`;
-}
-
-function driveDownloadUrl(fileId: string): string {
-  return `https://drive.google.com/uc?export=download&id=${fileId}`;
-}
-
-function resolveGoogleDriveCsvDownloadUrl(source: string): string {
-  const trimmed = source.trim();
-
-  if (!trimmed.includes('://')) {
-    // Bare file ID - detect Sheets vs Drive by length
-    return looksLikeSheetsId(trimmed)
-      ? sheetsExportUrl(trimmed)
-      : driveDownloadUrl(trimmed);
-  }
-
-  // Google Sheets URL (docs.google.com/spreadsheets/...)
-  if (trimmed.includes('docs.google.com/spreadsheets')) {
-    const fileId = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
-    if (fileId) {
-      return sheetsExportUrl(fileId);
-    }
-  }
-
-  if (trimmed.includes('drive.google.com')) {
-    const fileId =
-      trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] ??
-      trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1];
-
-    if (fileId) {
-      return looksLikeSheetsId(fileId)
-        ? sheetsExportUrl(fileId)
-        : driveDownloadUrl(fileId);
-    }
-  }
-
-  return trimmed;
-}
-
 /**
  * Load and parse occasions data from CSV_URL environment variable
  * @returns Parsed occasions data array

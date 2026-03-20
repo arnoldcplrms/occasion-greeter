@@ -43,8 +43,8 @@ function getTodayPH(): { day: number; month: number } {
   );
 
   return {
-    day: 29, //phTime.getDate(),
-    month: 3, //phTime.getMonth() + 1,
+    day: 20, //phTime.getDate(),
+    month: 7, //phTime.getMonth() + 1,
   };
 }
 
@@ -70,6 +70,7 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
         person: {
           name: data.maleName,
           nickname: data.maleNickname || data.maleName,
+          email: data.maleEmail,
           profilePicture: data.maleProfilePicture,
         },
       });
@@ -87,6 +88,7 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
         person: {
           name: data.femaleName,
           nickname: data.femaleNickname || data.femaleName,
+          email: data.femaleEmail,
           profilePicture: data.femaleProfilePicture,
         },
       });
@@ -103,6 +105,7 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
         type: 'anniversary',
         couple: {
           lastName: data.coupleLastName,
+          maleLastName: data.maleLastName,
           profilePicture: data.weddingProfilePicture,
         },
       });

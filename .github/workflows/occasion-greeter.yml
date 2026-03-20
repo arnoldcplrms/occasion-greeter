@@ -27,4 +27,5 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           CSV_URL: ${{ secrets.CSV_URL }}
+          OCCASION_PHOTO_MANIFEST_URL: ${{ secrets.OCCASION_PHOTO_MANIFEST_URL }}
         run: bun run scripts/index.ts

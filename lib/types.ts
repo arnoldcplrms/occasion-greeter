@@ -4,11 +4,15 @@
 
 export interface OccasionData {
   maleName: string;
+  maleLastName: string;
   femaleName: string;
+  femaleLastName: string;
   maleNickname: string;
   femaleNickname: string;
   maleBirthday: string; // Format: DD/MM/YYYY
   femaleBirthday: string; // Format: DD/MM/YYYY
+  maleEmail: string;
+  femaleEmail: string;
   maleProfilePicture: string;
   femaleProfilePicture: string;
   coupleLastName: string;

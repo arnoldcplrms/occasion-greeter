@@ -17,7 +17,8 @@ import { sendOccasionEmail } from '../lib/email-service';
 
     // Load occasions data
     console.log('📂 Loading occasions data...');
-    const occasionsData = loadOccasionsData();
+    const occasionsData = await loadOccasionsData();
+    console.log('occasionsData', occasionsData);
     console.log(`✓ Loaded ${occasionsData.length} occasions`);
 
     // Find occasions today

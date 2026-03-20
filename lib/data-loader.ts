@@ -1,93 +1,220 @@
 import type { OccasionData } from './types';
 
 /**
- * Legacy Couple format (from original JSON)
+ * Maps exact Google Sheets column headers to camelCase field names.
+ * Unrecognised headers are passed through as-is so camelCase CSVs still work.
  */
-interface LegacyPerson {
-  firstName: string;
-  lastName: string;
-  nickname: string;
-  birthday: string;
-  email: string;
-  contactNumber: string;
-  profilePicture: string;
-}
+const SHEET_COLUMN_MAP: Record<string, string> = {
+  "Male's First Name": 'maleName',
+  "Male's Last Name": 'maleLastName',
+  "Male's Nickname (If Applicable)": 'maleNickname',
+  "Male's Birthday": 'maleBirthday',
+  "Male's Email Address": 'maleEmail',
+  "Male's Profile Picture": 'maleProfilePicture',
+  "Female's First Name": 'femaleName',
+  "Female's Last Name": 'femaleLastName',
+  "Female's Nickname (If Applicable)": 'femaleNickname',
+  "Female's Birthday": 'femaleBirthday',
+  "Female's Email Address": 'femaleEmail',
+  "Female's Profile Picture": 'femaleProfilePicture',
+  "Couple's Profile Picture": 'weddingProfilePicture',
+  'Wedding Anniversary (If engaged, set the future date/ If Not Applicable Skip)':
+    'weddingAnniversary',
+};
 
-interface LegacyCouple {
-  timestamp: string;
-  male: LegacyPerson;
-  female: LegacyPerson;
-  weddingAnniversary: string;
-  coupleProfilePicture: string;
-  attendingBranch: string;
-  maleMinistry: string;
-  femaleMinistry: string;
-  coupleActivities: string;
-  maleActivitiesAttended: string;
-  femaleActivitiesAttended: string;
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const next = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  result.push(current.trim());
+  return result;
 }
 
 /**
- * Transform legacy couple format to flattened occasions format
- * @param couple Legacy couple data
- * @returns Flattened occasion data
+ * Split raw CSV text into logical rows, correctly handling quoted fields that
+ * contain embedded newlines (e.g. multi-line Google Sheets cells).
  */
-function transformCoupleToOccasion(couple: LegacyCouple): OccasionData {
-  return {
-    maleName: couple.male.firstName,
-    femaleName: couple.female.firstName,
-    maleNickname: couple.male.nickname,
-    femaleNickname: couple.female.nickname,
-    maleBirthday: couple.male.birthday,
-    femaleBirthday: couple.female.birthday,
-    maleProfilePicture: couple.male.profilePicture,
-    femaleProfilePicture: couple.female.profilePicture,
-    coupleLastName: couple.male.lastName,
-    weddingAnniversary: couple.weddingAnniversary,
-    weddingProfilePicture: couple.coupleProfilePicture,
-  };
+function splitCsvIntoRows(csvText: string): string[] {
+  const rows: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const next = csvText[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '""';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+        current += char;
+      }
+      continue;
+    }
+
+    if (!inQuotes && (char === '\n' || (char === '\r' && next === '\n'))) {
+      if (char === '\r') i++;
+      if (current.trim()) rows.push(current);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  if (current.trim()) rows.push(current);
+  return rows;
+}
+
+function parseRawCsvRows(csvText: string): Record<string, string>[] {
+  const rows = splitCsvIntoRows(csvText);
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const headers = parseCsvLine(rows[0]);
+
+  return rows.slice(1).map((row) => {
+    const values = parseCsvLine(row);
+    const result: Record<string, string> = {};
+
+    for (let i = 0; i < headers.length; i++) {
+      const rawHeader = headers[i];
+      const mappedKey = SHEET_COLUMN_MAP[rawHeader] ?? rawHeader;
+      result[mappedKey] = values[i] ?? '';
+    }
+
+    return result;
+  });
+}
+
+function parseOccasionsCsv(csvText: string): OccasionData[] {
+  const rows = parseRawCsvRows(csvText);
+
+  return rows.map((row, index) => {
+    const rowNumber = index + 2; // +1 for 0-based index, +1 for CSV header row
+    const get = (key: string): string => row[key] ?? '';
+    const require = (key: string): string => {
+      if (!row[key]) {
+        throw new Error(
+          `CSV row ${rowNumber}: missing required column '${key}'`
+        );
+      }
+      return row[key];
+    };
+
+    const maleLastName = get('maleLastName') || get('coupleLastName');
+
+    return {
+      maleName: require('maleName'),
+      maleLastName,
+      femaleName: require('femaleName'),
+      femaleLastName: get('femaleLastName'),
+      maleNickname: get('maleNickname'),
+      femaleNickname: get('femaleNickname'),
+      maleBirthday: get('maleBirthday'),
+      femaleBirthday: get('femaleBirthday'),
+      maleEmail: get('maleEmail'),
+      femaleEmail: get('femaleEmail'),
+      maleProfilePicture: get('maleProfilePicture'),
+      femaleProfilePicture: get('femaleProfilePicture'),
+      coupleLastName: maleLastName,
+      weddingAnniversary: get('weddingAnniversary'),
+      weddingProfilePicture: get('weddingProfilePicture'),
+    };
+  });
+}
+
+// Google Sheets document IDs are 44 chars; regular Drive file IDs are ~28.
+function looksLikeSheetsId(id: string): boolean {
+  return id.length >= 40;
+}
+
+function sheetsExportUrl(fileId: string): string {
+  return `https://docs.google.com/spreadsheets/d/${fileId}/export?format=csv`;
+}
+
+function driveDownloadUrl(fileId: string): string {
+  return `https://drive.google.com/uc?export=download&id=${fileId}`;
+}
+
+function resolveGoogleDriveCsvDownloadUrl(source: string): string {
+  const trimmed = source.trim();
+
+  if (!trimmed.includes('://')) {
+    // Bare file ID - detect Sheets vs Drive by length
+    return looksLikeSheetsId(trimmed)
+      ? sheetsExportUrl(trimmed)
+      : driveDownloadUrl(trimmed);
+  }
+
+  // Google Sheets URL (docs.google.com/spreadsheets/...)
+  if (trimmed.includes('docs.google.com/spreadsheets')) {
+    const fileId = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
+    if (fileId) {
+      return sheetsExportUrl(fileId);
+    }
+  }
+
+  if (trimmed.includes('drive.google.com')) {
+    const fileId =
+      trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] ??
+      trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1];
+
+    if (fileId) {
+      return looksLikeSheetsId(fileId)
+        ? sheetsExportUrl(fileId)
+        : driveDownloadUrl(fileId);
+    }
+  }
+
+  return trimmed;
 }
 
 /**
- * Load and parse occasions data from environment variable
- * Handles both legacy couple format and new flattened occasions format
+ * Load and parse occasions data from CSV_URL environment variable
  * @returns Parsed occasions data array
  */
-export function loadOccasionsData(): OccasionData[] {
-  const dataEnv = process.env.COUPLES_DATA;
+export async function loadOccasionsData(): Promise<OccasionData[]> {
+  const csvSource = process.env.CSV_URL;
 
-  if (!dataEnv) {
-    throw new Error('COUPLES_DATA environment variable is not set');
+  if (!csvSource) {
+    throw new Error('CSV_URL environment variable is not set');
   }
 
-  try {
-    const data = JSON.parse(dataEnv);
-    if (!Array.isArray(data)) {
-      throw new Error('COUPLES_DATA must be a valid JSON array');
-    }
+  const response = await fetch(csvSource);
 
-    // Check if it's already in the new format or needs transformation
-    if (data.length === 0) {
-      return [];
-    }
-
-    const firstItem = data[0];
-
-    // If it has 'male' and 'female' properties, it's the legacy format
-    if ('male' in firstItem && 'female' in firstItem) {
-      console.log('ℹ️  Converting legacy couple format to occasions format...');
-      return data.map((couple: LegacyCouple) =>
-        transformCoupleToOccasion(couple)
-      );
-    }
-
-    // Otherwise, assume it's already in the new format
-    return data as OccasionData[];
-  } catch (error) {
-    throw new Error(
-      `Failed to parse COUPLES_DATA: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
+  if (!response.ok) {
+    throw new Error(`Failed to download CSV_URL (status ${response.status})`);
   }
+
+  const csvText = await response.text();
+  return parseOccasionsCsv(csvText);
 }

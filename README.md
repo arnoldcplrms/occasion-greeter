@@ -52,13 +52,22 @@ cp .env.example .env
 Update with your values:
 
 ```env
+# Option A: Keep using JSON payload
 COUPLES_DATA='[{"timestamp": "...", "male": {...}, "female": {...}, ...}]'
+
+# Option B: Load from CSV file in Google Drive (recommended for easier updates)
+# Can be either a full URL or just a Drive file ID.
+COUPLES_CSV_URL=https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing
+
 RECIPIENT_EMAIL=your-email@example.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
 ```
+
+If `COUPLES_CSV_URL` is set, the app will fetch and parse CSV from that source and ignore `COUPLES_DATA`.
+Make sure the Drive file sharing is set to **Anyone with the link can view**.
 
 ### 3. Email Server Setup
 
@@ -213,6 +222,20 @@ The system supports a flattened occasion data structure:
 ```
 
 **Backward Compatible:** The system automatically transforms the legacy couple format (with `male` and `female` nested objects) to this flattened format.
+
+### CSV Headers (for Google Drive CSV)
+
+Use these exact column names in the first row:
+
+```csv
+maleName,femaleName,maleNickname,femaleNickname,maleBirthday,femaleBirthday,maleProfilePicture,femaleProfilePicture,coupleLastName,weddingAnniversary,weddingProfilePicture
+```
+
+Notes:
+
+- `maleName`, `femaleName`, and `coupleLastName` are required.
+- Dates should remain in `DD/MM/YYYY` format.
+- Empty birthday/anniversary fields are allowed.
 
 ## Cron Schedule
 

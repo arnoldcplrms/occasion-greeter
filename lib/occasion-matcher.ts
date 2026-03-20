@@ -43,8 +43,8 @@ function getTodayPH(): { day: number; month: number } {
   );
 
   return {
-    day: 29, //phTime.getDate(),
-    month: 3, //phTime.getMonth() + 1,
+    day: phTime.getDate(),
+    month: phTime.getMonth() + 1,
   };
 }
 

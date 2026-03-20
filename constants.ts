@@ -14,6 +14,17 @@ export const BIRTHDAY_GREETINGS = [
   "Happy birthday <<nickname>>! Praying Jeremiah 29:11 over you today - that God's plans for you are full of hope and a bright future. Celebrate well! Love, from your Dgroup family",
   'Hope your birthday is absolutely blessed <<nickname>>! May God continue to use you in mighty ways and shower you with His favor. You deserve the best! Love, from your Dgroup family',
   'Happy birthday <<nickname>>! May this year be your best one yet and may you continue to reflect His love in all you do! Love, from your Dgroup family',
+  "Happy birthday <<nickname>>! May God's love be the foundation of your year ahead. Praying for His guidance and blessings in every step you take. Love, from your Dgroup family",
+  "Wishing you a joyful birthday <<nickname>>! May the Lord's presence be with you today and always, filling your life with peace and happiness. Love, from your Dgroup family",
+  "Happy birthday <<nickname>>! May God's grace abound in your life this year, bringing you closer to Him and fulfilling all the desires of your heart. Love, from your Dgroup family",
+  'Hope your birthday is as amazing as you are <<nickname>>! Praying that God continues to bless you with good health, strong faith, and wonderful opportunities. Love, from your Dgroup family',
+  "Happy birthday <<nickname>>! May the Lord bless you with many more years of love, laughter, and cherished memories. You're a true blessing to everyone around you! Love, from your Dgroup family",
+  "Wishing you the happiest birthday <<nickname>>! May God's blessings overflow in your life today and always. You're such a gift to everyone around you! Love, from your Dgroup family",
+  "Happy birthday <<nickname>>! May God's love surround you today and always, filling your life with joy and peace. Have an amazing day! Love, from your Dgroup family",
+  'Sending you birthday blessings <<nickname>>! May the Lord surround you with His love today and grant you many more years of health and happiness. Celebrate big! Love, from your Dgroup family',
+  "Happy birthday <<nickname>>! May the Lord bless you with many more years of love, laughter, and cherished memories together. You're an inspiration! Love, from your Dgroup family",
+  "Wishing you the happiest birthday <<nickname>>! May God's blessings overflow in your life today and always. You're such a gift to everyone around you! Love, from your Dgroup family",
+  "Happy birthday <<nickname>>! May God's love surround you today and always, filling your life with joy and peace. Have an amazing day! Love, from your Dgroup family",
 ];
 
 export const WEDDING_ANNIVERSARY_GREETINGS = [
@@ -32,4 +43,17 @@ export const WEDDING_ANNIVERSARY_GREETINGS = [
   'Happy Anniversary Team <<lastName>>! Celebrating the beautiful partnership God has blessed you with. May He continue to pour out His favor on your marriage! Love, from your Dgroup family',
   'Happy Anniversary Team <<lastName>>! Praying your marriage continues to be anchored in faith, hope, and love. May God grant you many more wonderful years together! Love, from your Dgroup family',
   'Happy Anniversary Team <<lastName>>! What a joy to see how God works through your love for each other. May He bless this special day and all the days to come! Love, from your Dgroup family',
+  "Happy Anniversary Team <<lastName>>! May the Lord's blessings continue to overflow in your marriage, bringing you closer together and closer to Him. Celebrate well! Love, from your Dgroup family",
+  "Happy Anniversary Team <<lastName>>! May God's love be the foundation of your marriage today and always. Here's to many more years of His faithfulness! Love, from your Dgroup family",
+  // add unique christian greetings here
+  'Happy Anniversary Team <<lastName>>! Praying Ecclesiastes 4:12 over your marriage - that your threefold cord with God may never be broken. Celebrate big! Love, from your Dgroup family',
+  "Happy Anniversary Team <<lastName>>! May God bless you with many more years of love, laughter, and cherished memories together. You're an inspiration! Love, from your Dgroup family",
+  'Happy Anniversary Team <<lastName>>! Thanking God for bringing you two together and for the amazing testimony of faith and love your marriage is. Love, from your Dgroup family',
+  "Happy Anniversary Team <<lastName>>! May your love continue to reflect God's unconditional love. Praying for strength, joy, and countless blessings in the years ahead. Love, from your Dgroup family",
+  "Happy Anniversary Team <<lastName>>! Another year of growing together in faith and love. May God's presence be felt in every moment you share. Love, from your Dgroup family",
+  'Happy Anniversary Team <<lastName>>! Celebrating the beautiful partnership God has blessed you with. May He continue to pour out His favor on your marriage! Love, from your Dgroup family',
+  'Happy Anniversary Team <<lastName>>! Praying your marriage continues to be anchored in faith, hope, and love. May God grant you many more wonderful years together! Love, from your Dgroup family',
+  'Happy Anniversary Team <<lastName>>! What a joy to see how God works through your love for each other. May He bless this special day and all the days to come! Love, from your Dgroup family',
+  "Happy Anniversary Team <<lastName>>! May the Lord's blessings continue to overflow in your marriage, bringing you closer together and closer to Him. Celebrate well! Love, from your Dgroup family",
+  "Happy Anniversary Team <<lastName>>! May God's love be the foundation of your marriage today and always. Here's to many more years of His faithfulness! Love, from your Dgroup family",
 ];

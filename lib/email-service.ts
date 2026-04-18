@@ -81,22 +81,31 @@ interface OccasionEmailMeta {
   fallbackProfilePicture: string;
 }
 
+interface SendOccasionEmailOptions {
+  isReminder?: boolean;
+}
+
 interface ResolvedPhotoState {
   profilePictureUrl: string;
   missingPhotoHint: string;
 }
 
-function getOccasionEmailMeta(occasion: Occasion): OccasionEmailMeta {
+function getOccasionEmailMeta(
+  occasion: Occasion,
+  options: SendOccasionEmailOptions = {}
+): OccasionEmailMeta {
+  const subjectPrefix = options.isReminder ? 'Reminder (Tomorrow): ' : '';
+
   if (occasion.type === 'birthday' && occasion.person) {
     return {
-      subject: `Birthday Greeting: ${occasion.person.name}`,
+      subject: `${subjectPrefix}Birthday: ${occasion.person.name}`,
       fallbackProfilePicture: occasion.person.profilePicture,
     };
   }
 
   if (occasion.type === 'anniversary' && occasion.couple) {
     return {
-      subject: `Anniversary Greeting: Team ${occasion.couple.lastName}`,
+      subject: `${subjectPrefix}Anniversary: Team ${occasion.couple.lastName}`,
       fallbackProfilePicture: occasion.couple.profilePicture,
     };
   }
@@ -211,19 +220,32 @@ function generateEmailHTML(
 export async function sendOccasionEmail(
   occasion: Occasion,
   greeting: string,
-  manifest: OccasionManifest
+  manifest: OccasionManifest,
+  options: SendOccasionEmailOptions = {}
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     validateEmailConfig();
 
-    const { subject, fallbackProfilePicture } = getOccasionEmailMeta(occasion);
-
-    const lookupResult = await resolveOccasionPhoto(occasion, manifest);
-    const { profilePictureUrl, missingPhotoHint } = resolvePhotoState(
+    const { subject, fallbackProfilePicture } = getOccasionEmailMeta(
       occasion,
-      lookupResult,
-      fallbackProfilePicture
+      options
     );
+
+    const shouldIncludeImage = !options.isReminder;
+
+    let profilePictureUrl = '';
+    let missingPhotoHint = '';
+
+    if (shouldIncludeImage) {
+      const lookupResult = await resolveOccasionPhoto(occasion, manifest);
+      const photoState = resolvePhotoState(
+        occasion,
+        lookupResult,
+        fallbackProfilePicture
+      );
+      profilePictureUrl = photoState.profilePictureUrl;
+      missingPhotoHint = photoState.missingPhotoHint;
+    }
 
     const hasImageAttachment = Boolean(profilePictureUrl);
     const htmlContent = generateEmailHTML(
@@ -233,17 +255,18 @@ export async function sendOccasionEmail(
       missingPhotoHint
     );
 
-    const attachments = hasImageAttachment
-      ? [
-          {
-            filename: `profile-picture.${inferImageExtension(
-              profilePictureUrl
-            )}`,
-            path: profilePictureUrl,
-            contentDisposition: 'attachment' as const,
-          },
-        ]
-      : [];
+    const attachments =
+      shouldIncludeImage && hasImageAttachment
+        ? [
+            {
+              filename: `profile-picture.${inferImageExtension(
+                profilePictureUrl
+              )}`,
+              path: profilePictureUrl,
+              contentDisposition: 'attachment' as const,
+            },
+          ]
+        : [];
 
     const mailOptions = {
       from: EMAIL_CONFIG.smtpUser,
@@ -263,6 +286,45 @@ export async function sendOccasionEmail(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Failed to send email: ${errorMessage}`);
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Send a combined reminder email for multiple tomorrow occasions
+ * @param greeting Combined reminder message, usually with bullet list
+ * @returns Result of email send operation
+ */
+export async function sendBulkReminderEmail(
+  greeting: string
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  try {
+    validateEmailConfig();
+
+    const htmlContent = generateEmailHTML(greeting, '', false, '');
+
+    const mailOptions = {
+      from: EMAIL_CONFIG.smtpUser,
+      to: EMAIL_CONFIG.recipients.join(','),
+      subject: 'Reminder (Tomorrow): Upcoming Occasions',
+      html: htmlContent,
+      attachments: [],
+    };
+
+    const transporter = createTransporter();
+    const info = await transporter.sendMail(mailOptions);
+
+    return {
+      success: true,
+      messageId: info.messageId,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Failed to send bulk reminder email: ${errorMessage}`);
 
     return {
       success: false,

@@ -33,14 +33,19 @@ function parseDate(dateStr: string): { day: number; month: number } | null {
 }
 
 /**
- * Get today's date in PH timezone
+ * Get PH timezone date parts with optional day offset
+ * @param dayOffset Number of days to offset from today (PH time)
  * @returns Object with day and month
  */
-function getTodayPH(): { day: number; month: number } {
+function getDatePH(dayOffset = 0): { day: number; month: number } {
   const now = new Date();
   const phTime = new Date(
     now.toLocaleString('en-US', { timeZone: 'Asia/Manila' })
   );
+
+  if (dayOffset !== 0) {
+    phTime.setDate(phTime.getDate() + dayOffset);
+  }
 
   return {
     day: phTime.getDate(),
@@ -48,13 +53,10 @@ function getTodayPH(): { day: number; month: number } {
   };
 }
 
-/**
- * Find all occasions (birthdays and anniversaries) today
- * @param occasionsData Array of occasion data
- * @returns Array of occasions happening today
- */
-export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
-  const today = getTodayPH();
+function findOccasionsForDate(
+  occasionsData: OccasionData[],
+  targetDate: { day: number; month: number }
+): Occasion[] {
   const occasions: Occasion[] = [];
 
   for (const data of occasionsData) {
@@ -62,8 +64,8 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
     const maleBirthday = parseDate(data.maleBirthday);
     if (
       maleBirthday &&
-      maleBirthday.day === today.day &&
-      maleBirthday.month === today.month
+      maleBirthday.day === targetDate.day &&
+      maleBirthday.month === targetDate.month
     ) {
       occasions.push({
         type: 'birthday',
@@ -80,8 +82,8 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
     const femaleBirthday = parseDate(data.femaleBirthday);
     if (
       femaleBirthday &&
-      femaleBirthday.day === today.day &&
-      femaleBirthday.month === today.month
+      femaleBirthday.day === targetDate.day &&
+      femaleBirthday.month === targetDate.month
     ) {
       occasions.push({
         type: 'birthday',
@@ -98,8 +100,8 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
     const anniversary = parseDate(data.weddingAnniversary);
     if (
       anniversary &&
-      anniversary.day === today.day &&
-      anniversary.month === today.month
+      anniversary.day === targetDate.day &&
+      anniversary.month === targetDate.month
     ) {
       occasions.push({
         type: 'anniversary',
@@ -113,4 +115,40 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
   }
 
   return occasions;
+}
+
+function addDaysToDateParts(
+  dateParts: { day: number; month: number },
+  daysToAdd: number
+): { day: number; month: number } {
+  const syntheticDate = new Date(2000, dateParts.month - 1, dateParts.day);
+  syntheticDate.setDate(syntheticDate.getDate() + daysToAdd);
+
+  return {
+    day: syntheticDate.getDate(),
+    month: syntheticDate.getMonth() + 1,
+  };
+}
+
+/**
+ * Find all occasions (birthdays and anniversaries) today
+ * @param occasionsData Array of occasion data
+ * @returns Array of occasions happening today
+ */
+export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
+  return findOccasionsForDate(occasionsData, getDatePH());
+}
+
+/**
+ * Find all occasions happening tomorrow (PH timezone)
+ * @param occasionsData Array of occasion data
+ * @returns Array of occasions happening tomorrow
+ */
+export function findOccasionsTomorrow(
+  occasionsData: OccasionData[]
+): Occasion[] {
+  const today = getDatePH();
+  const tomorrow = addDaysToDateParts(today, 1);
+
+  return findOccasionsForDate(occasionsData, tomorrow);
 }

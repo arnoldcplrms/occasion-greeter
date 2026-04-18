@@ -1,7 +1,13 @@
 import { loadOccasionsData } from '../lib/data-loader';
-import { findOccasionsToday } from '../lib/occasion-matcher';
-import { generateGreeting } from '../lib/greeting-generator';
-import { sendOccasionEmail } from '../lib/email-service';
+import {
+  findOccasionsToday,
+  findOccasionsTomorrow,
+} from '../lib/occasion-matcher';
+import {
+  generateGreeting,
+  generateBulkReminderGreeting,
+} from '../lib/greeting-generator';
+import { sendBulkReminderEmail, sendOccasionEmail } from '../lib/email-service';
 import { getManifest } from '../lib/extract-manifest';
 
 (async () => {
@@ -13,18 +19,20 @@ import { getManifest } from '../lib/extract-manifest';
     const occasionsData = await loadOccasionsData();
     console.log(`✓ Loaded ${occasionsData.length} occasions`);
 
-    // Find occasions today
-    console.log('🔍 Searching for occasions today...');
+    // Find occasions today and tomorrow
+    console.log('🔍 Searching for occasions today and tomorrow...');
     const occasionsToday = findOccasionsToday(occasionsData);
+    const occasionsTomorrow = findOccasionsTomorrow(occasionsData);
 
-    if (occasionsToday.length === 0) {
-      console.log('✓ No occasions today');
+    if (occasionsToday.length === 0 && occasionsTomorrow.length === 0) {
+      console.log('✓ No occasions today or tomorrow');
       return;
     }
 
     const manifest = await getManifest();
 
     console.log(`✓ Found ${occasionsToday.length} occasion(s) today`);
+    console.log(`✓ Found ${occasionsTomorrow.length} occasion(s) tomorrow`);
 
     // Process each occasion
     for (const occasion of occasionsToday) {
@@ -49,6 +57,29 @@ import { getManifest } from '../lib/extract-manifest';
       }
 
       console.log(`✓ Email sent successfully (ID: ${result.messageId})`);
+    }
+
+    // Process reminders for tomorrow
+    if (occasionsTomorrow.length > 0) {
+      console.log(
+        `\n📧 ⏰ Processing combined reminder for ${occasionsTomorrow.length} occasions tomorrow`
+      );
+
+      const bulkReminderGreeting =
+        generateBulkReminderGreeting(occasionsTomorrow);
+      console.log(`📝 Generated combined reminder:\n${bulkReminderGreeting}`);
+
+      const result = await sendBulkReminderEmail(bulkReminderGreeting);
+
+      if (!result.success) {
+        return console.error(
+          `✗ Failed to send combined reminder email: ${result.error}`
+        );
+      }
+
+      console.log(
+        `✓ Combined reminder email sent successfully (ID: ${result.messageId})`
+      );
     }
 
     console.log('\n✓ Birthday & Anniversary Greeter completed');

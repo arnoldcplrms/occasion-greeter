@@ -2,12 +2,18 @@ import { loadOccasionsData } from '../lib/data-loader';
 import {
   findOccasionsToday,
   findOccasionsTomorrow,
+  findOccasionsThisMonth,
 } from '../lib/occasion-matcher';
 import {
   generateGreeting,
   generateBulkReminderGreeting,
+  generateMonthlySummaryGreeting,
 } from '../lib/greeting-generator';
-import { sendBulkReminderEmail, sendOccasionEmail } from '../lib/email-service';
+import {
+  sendBulkReminderEmail,
+  sendOccasionEmail,
+  sendMonthlySummaryEmail,
+} from '../lib/email-service';
 import { getManifest } from '../lib/extract-manifest';
 
 (async () => {
@@ -18,6 +24,28 @@ import { getManifest } from '../lib/extract-manifest';
     console.log('📂 Loading occasions data...');
     const occasionsData = await loadOccasionsData();
     console.log(`✓ Loaded ${occasionsData.length} occasions`);
+
+    // Send monthly summary on the 1st of the month
+    const now = new Date();
+    const phTime = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+    );
+    if (phTime.getDate() === 1) {
+      console.log('📅 First day of the month — sending monthly summary...');
+      const { occasions, month } = findOccasionsThisMonth(occasionsData);
+      const summaryGreeting = generateMonthlySummaryGreeting(occasions, month);
+      console.log(`📝 Generated monthly summary for ${month}`);
+      const result = await sendMonthlySummaryEmail(summaryGreeting, month);
+      if (!result.success) {
+        return console.error(
+          `✗ Failed to send monthly summary email: ${result.error}`
+        );
+      }
+      console.log(
+        `✓ Monthly summary email sent successfully (ID: ${result.messageId})`
+      );
+      return;
+    }
 
     // Find occasions today and tomorrow
     console.log('🔍 Searching for occasions today and tomorrow...');

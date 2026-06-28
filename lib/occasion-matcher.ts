@@ -140,6 +140,80 @@ export function findOccasionsToday(occasionsData: OccasionData[]): Occasion[] {
 }
 
 /**
+ * Find all occasions (birthdays and anniversaries) in a given month
+ * @param occasionsData Array of occasion data
+ * @param month Month number (1 = January, 12 = December)
+ * @returns Array of occasions happening in the specified month
+ */
+function findOccasionsForMonthData(
+  occasionsData: OccasionData[],
+  month: number
+): { occasions: Occasion[]; month: string } {
+  const occasions: Occasion[] = [];
+
+  for (const data of occasionsData) {
+    const maleBirthday = parseDate(data.maleBirthday);
+    if (maleBirthday && maleBirthday.month === month) {
+      occasions.push({
+        type: 'birthday',
+        person: {
+          name: data.maleName,
+          nickname: data.maleNickname || data.maleName,
+          email: data.maleEmail,
+          profilePicture: data.maleProfilePicture,
+        },
+      });
+    }
+
+    const femaleBirthday = parseDate(data.femaleBirthday);
+    if (femaleBirthday && femaleBirthday.month === month) {
+      occasions.push({
+        type: 'birthday',
+        person: {
+          name: data.femaleName,
+          nickname: data.femaleNickname || data.femaleName,
+          email: data.femaleEmail,
+          profilePicture: data.femaleProfilePicture,
+        },
+      });
+    }
+
+    const anniversary = parseDate(data.weddingAnniversary);
+    if (anniversary && anniversary.month === month) {
+      occasions.push({
+        type: 'anniversary',
+        couple: {
+          lastName: data.coupleLastName,
+          maleLastName: data.maleLastName,
+          profilePicture: data.weddingProfilePicture,
+        },
+      });
+    }
+  }
+
+  return {
+    occasions,
+    month: new Date(2000, month - 1).toLocaleString('en-US', { month: 'long' }),
+  };
+}
+
+/**
+ * Find all occasions happening this month (PH timezone)
+ * @param occasionsData Array of occasion data
+ * @returns Object with occasions array and month name
+ */
+export function findOccasionsThisMonth(
+  occasionsData: OccasionData[]
+): { occasions: Occasion[]; month: string } {
+  const now = new Date();
+  const phTime = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+  );
+  const month = phTime.getMonth() + 1;
+  return findOccasionsForMonthData(occasionsData, month);
+}
+
+/**
  * Find all occasions happening tomorrow (PH timezone)
  * @param occasionsData Array of occasion data
  * @returns Array of occasions happening tomorrow

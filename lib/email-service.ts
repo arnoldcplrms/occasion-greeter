@@ -332,3 +332,38 @@ export async function sendBulkReminderEmail(
     };
   }
 }
+
+export async function sendMonthlySummaryEmail(
+  greeting: string,
+  monthName: string
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  try {
+    validateEmailConfig();
+
+    const htmlContent = generateEmailHTML(greeting, '', false, '');
+
+    const mailOptions = {
+      from: EMAIL_CONFIG.smtpUser,
+      to: EMAIL_CONFIG.recipients.join(','),
+      subject: `Monthly Summary: ${monthName}`,
+      html: htmlContent,
+      attachments: [],
+    };
+
+    const transporter = createTransporter();
+    const info = await transporter.sendMail(mailOptions);
+
+    return {
+      success: true,
+      messageId: info.messageId,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Failed to send monthly summary email: ${errorMessage}`);
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}

@@ -61,3 +61,36 @@ export function generateBulkReminderGreeting(occasions: Occasion[]): string {
     ...listItems,
   ].join('\n');
 }
+
+export function generateMonthlySummaryGreeting(
+  occasions: Occasion[],
+  monthName: string
+): string {
+  const header = `📋 Monthly Summary for ${monthName}`;
+
+  if (occasions.length === 0) {
+    return [
+      header,
+      '',
+      'There are no occasions scheduled for this month.',
+    ].join('\n');
+  }
+
+  const birthdayEntries = occasions
+    .filter((o) => o.type === 'birthday' && o.person)
+    .map((o) => `🎂 ${o.person!.name}'s birthday`);
+
+  const anniversaryEntries = occasions
+    .filter((o) => o.type === 'anniversary' && o.couple)
+    .map((o) => `💍 Team ${o.couple!.lastName}'s wedding anniversary`);
+
+  const listItems = [...birthdayEntries, ...anniversaryEntries];
+
+  return [
+    header,
+    '',
+    ...listItems,
+    '',
+    `Total: ${occasions.length} occasion(s) this month.`,
+  ].join('\n');
+}

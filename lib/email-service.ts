@@ -94,18 +94,18 @@ function getOccasionEmailMeta(
   occasion: Occasion,
   options: SendOccasionEmailOptions = {}
 ): OccasionEmailMeta {
-  const subjectPrefix = options.isReminder ? 'Reminder (Tomorrow): ' : '';
+  const prefix = options.isReminder ? 'Upcoming: ' : '';
 
   if (occasion.type === 'birthday' && occasion.person) {
     return {
-      subject: `${subjectPrefix}Birthday: ${occasion.person.name}`,
+      subject: `${prefix}${occasion.person.name}'s Birthday`,
       fallbackProfilePicture: occasion.person.profilePicture,
     };
   }
 
   if (occasion.type === 'anniversary' && occasion.couple) {
     return {
-      subject: `${subjectPrefix}Anniversary: Team ${occasion.couple.lastName}`,
+      subject: `${prefix}Team ${occasion.couple.lastName} Wedding Anniversary`,
       fallbackProfilePicture: occasion.couple.profilePicture,
     };
   }
@@ -310,7 +310,7 @@ export async function sendBulkReminderEmail(
     const mailOptions = {
       from: EMAIL_CONFIG.smtpUser,
       to: EMAIL_CONFIG.recipients.join(','),
-      subject: 'Reminder (Tomorrow): Upcoming Occasions',
+      subject: 'Upcoming: Occasions Tomorrow',
       html: htmlContent,
       attachments: [],
     };
@@ -345,7 +345,7 @@ export async function sendMonthlySummaryEmail(
     const mailOptions = {
       from: EMAIL_CONFIG.smtpUser,
       to: EMAIL_CONFIG.recipients.join(','),
-      subject: `Monthly Summary: ${monthName}`,
+      subject: 'Pauri Dgroup Occasions for the Month',
       html: htmlContent,
       attachments: [],
     };

@@ -22,6 +22,7 @@ export interface OccasionData {
 
 export interface Occasion {
   type: 'birthday' | 'anniversary';
+  day?: number;
   person?: {
     name: string;
     nickname: string;

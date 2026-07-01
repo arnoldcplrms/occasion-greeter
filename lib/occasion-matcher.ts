@@ -149,45 +149,61 @@ function findOccasionsForMonthData(
   occasionsData: OccasionData[],
   month: number
 ): { occasions: Occasion[]; month: string } {
+  const seen = new Set<string>();
   const occasions: Occasion[] = [];
 
   for (const data of occasionsData) {
     const maleBirthday = parseDate(data.maleBirthday);
     if (maleBirthday && maleBirthday.month === month) {
-      occasions.push({
-        type: 'birthday',
-        person: {
-          name: data.maleName,
-          nickname: data.maleNickname || data.maleName,
-          email: data.maleEmail,
-          profilePicture: data.maleProfilePicture,
-        },
-      });
+      const key = `birthday:${data.maleName.toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        occasions.push({
+          type: 'birthday',
+          day: maleBirthday.day,
+          person: {
+            name: data.maleName,
+            nickname: data.maleNickname || data.maleName,
+            email: data.maleEmail,
+            profilePicture: data.maleProfilePicture,
+          },
+        });
+      }
     }
 
     const femaleBirthday = parseDate(data.femaleBirthday);
     if (femaleBirthday && femaleBirthday.month === month) {
-      occasions.push({
-        type: 'birthday',
-        person: {
-          name: data.femaleName,
-          nickname: data.femaleNickname || data.femaleName,
-          email: data.femaleEmail,
-          profilePicture: data.femaleProfilePicture,
-        },
-      });
+      const key = `birthday:${data.femaleName.toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        occasions.push({
+          type: 'birthday',
+          day: femaleBirthday.day,
+          person: {
+            name: data.femaleName,
+            nickname: data.femaleNickname || data.femaleName,
+            email: data.femaleEmail,
+            profilePicture: data.femaleProfilePicture,
+          },
+        });
+      }
     }
 
     const anniversary = parseDate(data.weddingAnniversary);
     if (anniversary && anniversary.month === month) {
-      occasions.push({
-        type: 'anniversary',
-        couple: {
-          lastName: data.coupleLastName,
-          maleLastName: data.maleLastName,
-          profilePicture: data.weddingProfilePicture,
-        },
-      });
+      const key = `anniversary:${data.coupleLastName.toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        occasions.push({
+          type: 'anniversary',
+          day: anniversary.day,
+          couple: {
+            lastName: data.coupleLastName,
+            maleLastName: data.maleLastName,
+            profilePicture: data.weddingProfilePicture,
+          },
+        });
+      }
     }
   }
 

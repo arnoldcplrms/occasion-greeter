@@ -76,13 +76,21 @@ export function generateMonthlySummaryGreeting(
     ].join('\n');
   }
 
+  const shortMonth = monthName.slice(0, 3);
+
   const birthdayEntries = occasions
     .filter((o) => o.type === 'birthday' && o.person)
-    .map((o) => `🎂 ${o.person!.name}'s birthday`);
+    .map(
+      (o) =>
+        `🎂 ${o.person!.name}'s birthday (${shortMonth} ${o.day})`
+    );
 
   const anniversaryEntries = occasions
     .filter((o) => o.type === 'anniversary' && o.couple)
-    .map((o) => `💍 Team ${o.couple!.lastName}'s wedding anniversary`);
+    .map(
+      (o) =>
+        `💍 Team ${o.couple!.lastName}'s wedding anniversary (${shortMonth} ${o.day})`
+    );
 
   const listItems = [...birthdayEntries, ...anniversaryEntries];
 

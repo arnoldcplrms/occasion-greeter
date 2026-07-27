@@ -41,40 +41,7 @@ occassion-greeter/
 - GitHub repository
 - SMTP service (Gmail, SendGrid, etc.)
 
-### 2. Environment Variables
-
-Copy `.env.example` to `.env` for local development:
-
-```bash
-cp .env.example .env
-```
-
-Update with your values:
-
-```env
-# Option A: Keep using JSON payload
-COUPLES_DATA='[{"timestamp": "...", "male": {...}, "female": {...}, ...}]'
-
-# Option B: Load from CSV file in Google Drive (recommended for easier updates)
-# Can be either a full URL or just a Drive file ID.
-COUPLES_CSV_URL=https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing
-
-RECIPIENT_EMAIL=your-email@example.com
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-
-# Public manifest URL containing birthday and anniversary photo links
-OCCASION_MANIFEST_URL=https://drive.google.com/uc?export=download&id=<MANIFEST_FILE_ID>
-```
-
-If `COUPLES_CSV_URL` is set, the app will fetch and parse CSV from that source and ignore `COUPLES_DATA`.
-Make sure the Drive file sharing is set to **Anyone with the link can view**.
-
-For celebrant photos via manifest, publish the manifest file and linked image files as **Anyone with the link can view**.
-
-### 3. Email Server Setup
+### 2. Email Server Setup
 
 Choose one of the options below to get your SMTP credentials:
 
@@ -137,7 +104,7 @@ SMTP_PASSWORD=<sendgrid-api-key>
 | **AWS SES**       | `email-smtp.region.amazonaws.com` | 587        | SMTP username from AWS      | SMTP password from AWS       |
 | **Custom Server** | Your server hostname              | 587 or 465 | Your email/user             | Your password                |
 
-### 4. GitHub Secrets
+### 3. GitHub Secrets
 
 Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
 
@@ -157,13 +124,13 @@ Add these secrets to your GitHub repository (Settings → Secrets and variables 
 
 ### 5. Install Dependencies
 
-```bash
+```Shell
 bun install
 ```
 
 ### 6. Test Locally
 
-```bash
+```Shell
 bun run dev
 ```
 
@@ -210,7 +177,7 @@ Main orchestrator that:
 
 The system supports a flattened occasion data structure:
 
-```json
+```JSON
 {
   "maleName": "Arnold",
   "femaleName": "Krizzia Mae",
@@ -252,7 +219,7 @@ Notes:
 
 Create a JSON file using this structure (see `occasion-photo-manifest.json` in the repo):
 
-```json
+```JSON
 {
   "birthday": {
     "email@hello.com": "https://drive.google.com/open?id=<FILE_ID>"
@@ -274,7 +241,7 @@ Accepted image URL formats in manifest values (all normalized automatically):
 
 The workflow runs at **9 AM Philippine Time** every day:
 
-```yaml
+```YAML
 - cron: '0 1 * * *' # 1 AM UTC = 9 AM PH (UTC+8)
 ```
 
@@ -298,7 +265,7 @@ Edit the greeting arrays in `constants.ts`:
 
 **Birthday Greetings:**
 
-```typescript
+```TypeScript
 export const BIRTHDAY_GREETINGS = [
   'Happy birthday <<nickname>>! ...',
   'Wishing you the happiest birthday <<nickname>>! ...',
@@ -308,7 +275,7 @@ export const BIRTHDAY_GREETINGS = [
 
 **Anniversary Greetings:**
 
-```typescript
+```TypeScript
 export const WEDDING_ANNIVERSARY_GREETINGS = [
   'Happy Anniversary Team <<lastName>>! ...',
   // Add more greetings with <<lastName>> placeholder
@@ -322,7 +289,7 @@ Placeholders:
 
 ## Local Development
 
-```bash
+```Shell
 # Install dependencies
 bun install
 
@@ -381,7 +348,7 @@ Error: 421 Service not available
 
 **Test Email Locally:**
 
-```bash
+```Shell
 # Create a test script to verify credentials
 cat > test-email.ts << 'EOF'
 import nodemailer from 'nodemailer';
@@ -439,8 +406,8 @@ bun test-email.ts
 
 ## Performance
 
-- **Execution time**: ~1-2 seconds (with email sending)
-- **Memory**: ~80MB
+- **Execution time**: \~1-2 seconds (with email sending)
+- **Memory**: \~80MB
 - **Cost**: Free with GitHub Actions free tier (usually 2000 minutes/month)
 
 ## Troubleshooting
@@ -467,5 +434,5 @@ bun test-email.ts
 ## Performance
 
 - **Execution time**: < 1 second typically (with email send)
-- **Memory**: ~50MB
+- **Memory**: \~50MB
 - **Cost**: Free with GitHub Actions free tier (usually 2000 minutes/month)

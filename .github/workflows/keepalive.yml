@@ -7,7 +7,7 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"

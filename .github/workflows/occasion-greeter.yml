@@ -2,7 +2,7 @@ name: Birthday & Anniversary Greeter (Bun/TS)
 
 on:
   schedule:
-    - cron: '0 1 1-31/2 * *' # 9 AM PHT (UTC+8) = 1 AM UTC, odd-numbered dates only
+    - cron: '0 17 1-31/2 * *' # 1 AM PHT (UTC+8) = 5 PM UTC, odd-numbered dates only
   workflow_dispatch: # Allow manual trigger
 
 jobs:
